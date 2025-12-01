@@ -360,6 +360,39 @@ function scrollToBottom() {
   color: #111827;
 }
 
+.btn-fullscreen {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 100;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: white;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-fullscreen:hover {
+  background: #f9fafb;
+  color: #3b82f6;
+  border-color: #3b82f6;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.btn-fullscreen:active {
+  transform: scale(0.95);
+}
+
 .start-screen p {
   color: #6b7280;
   font-size: 14px;
