@@ -67,12 +67,12 @@ function getHandlePosition(handleElement: HTMLElement): { x: number; y: number }
   };
 }
 
-// Gera o path SVG para uma conexão
+// Gera o path SVG para uma conexão (horizontal)
 function getConnectionPath(fromX: number, fromY: number, toX: number, toY: number): string {
-  const dy = toY - fromY;
-  const controlOffset = Math.abs(dy) * 0.4 + 50;
+  const dx = toX - fromX;
+  const controlOffset = Math.abs(dx) * 0.4 + 50;
 
-  return `M ${fromX} ${fromY} C ${fromX} ${fromY + controlOffset}, ${toX} ${toY - controlOffset}, ${toX} ${toY}`;
+  return `M ${fromX} ${fromY} C ${fromX + controlOffset} ${fromY}, ${toX - controlOffset} ${toY}, ${toX} ${toY}`;
 }
 
 // Atualiza o path da conexão temporária durante o arraste
