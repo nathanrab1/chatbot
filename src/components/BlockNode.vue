@@ -30,6 +30,7 @@ const blockTitle = computed(() => {
     case "choiceQuestion": return "Múltipla Escolha";
     case "condition": return "Condicional";
     case "setVariable": return "Definir Variável";
+    case "image": return "Imagem";
     case "end": return "Fim da Conversa";
     default: return "Bloco";
   }
@@ -42,6 +43,7 @@ const blockIcon = computed(() => {
     case "choiceQuestion": return "📊";
     case "condition": return "⚙️";
     case "setVariable": return "📝";
+    case "image": return "🖼️";
     case "end": return "✅";
     default: return "📦";
   }
@@ -54,6 +56,7 @@ const blockColor = computed(() => {
     case "choiceQuestion": return "#f59e0b";
     case "condition": return "#8b5cf6";
     case "setVariable": return "#06b6d4";
+    case "image": return "#ec4899";
     case "end": return "#ef4444";
     default: return "#6b7280";
   }
@@ -131,13 +134,19 @@ function handleDelete(event: MouseEvent) {
     />
 
     <div class="block-content">
-      <p v-if="block.type !== 'setVariable'">{{ block.content || 'Sem conteúdo' }}</p>
+      <p v-if="block.type !== 'setVariable' && block.type !== 'image'">{{ block.content || 'Sem conteúdo' }}</p>
 
       <!-- Visualização para setVariable -->
       <div v-if="block.type === 'setVariable'" class="variable-assignment">
         <span class="var-name">{{ block.variableName || '?' }}</span>
         <span class="var-equals">=</span>
         <span class="var-value">{{ block.variableValue || '?' }}</span>
+      </div>
+
+      <!-- Visualização para image -->
+      <div v-if="block.type === 'image'" class="image-preview-block">
+        <img v-if="block.imageData || block.imageUrl" :src="block.imageData || block.imageUrl" alt="Preview" />
+        <span v-else class="no-image">Nenhuma imagem definida</span>
       </div>
 
       <!-- Opções de múltipla escolha -->
@@ -368,5 +377,29 @@ function handleDelete(event: MouseEvent) {
   position: relative;
   margin-left: 8px;
   flex-shrink: 0;
+}
+
+.image-preview-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 80px;
+  background: #f9fafb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.image-preview-block img {
+  width: 100%;
+  height: auto;
+  max-height: 120px;
+  object-fit: contain;
+}
+
+.no-image {
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
 }
 </style>

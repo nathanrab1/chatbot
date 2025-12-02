@@ -12,6 +12,7 @@ const emit = defineEmits<{
 }>();
 
 const localBlock = ref<Block | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
 
 watch(() => props.block, (newBlock) => {
   if (newBlock) {
@@ -66,6 +67,34 @@ function removeCondition(condId: string) {
     localBlock.value.conditions = localBlock.value.conditions.filter(c => c.id !== condId);
     updateBlock();
   }
+}
+
+function handleImageUpload(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file || !localBlock.value) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    if (localBlock.value && e.target?.result) {
+      localBlock.value.imageData = e.target.result as string;
+      localBlock.value.imageUrl = undefined;
+      updateBlock();
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImage() {
+  if (localBlock.value) {
+    localBlock.value.imageUrl = undefined;
+    localBlock.value.imageData = undefined;
+    updateBlock();
+  }
+}
+
+function openFileDialog() {
+  fileInput.value?.click();
 }
 </script>
 
@@ -173,6 +202,55 @@ function removeCondition(condId: string) {
           </div>
         </div>
         <button @click="addCondition" class="btn-add">+ Adicionar Condição</button>
+      </div>
+
+      <div v-if="localBlock.type === 'image'" class="property-group">
+        <label>Fonte da Imagem</label>
+        <div class="image-source-tabs">
+          <button
+            @click="localBlock.imageData = undefined; updateBlock()"
+            :class="{ active: !localBlock.imageData }"
+            class="tab-button"
+          >
+            URL
+          </button>
+          <button
+            @click="localBlock.imageUrl = undefined; updateBlock()"
+            :class="{ active: localBlock.imageData }"
+            class="tab-button"
+          >
+            Upload
+          </button>
+        </div>
+
+        <div v-if="!localBlock.imageData" class="image-url-input">
+          <input
+            v-model="localBlock.imageUrl"
+            @input="updateBlock"
+            placeholder="https://exemplo.com/imagem.jpg"
+            type="url"
+          />
+          <small>Cole a URL de uma imagem da web</small>
+        </div>
+
+        <div v-else class="image-upload-input">
+          <button @click="openFileDialog" class="upload-button" type="button">
+            📁 Escolher Arquivo
+          </button>
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            @change="handleImageUpload"
+            style="display: none;"
+          />
+          <small>Formatos aceitos: JPG, PNG, GIF, WebP</small>
+        </div>
+
+        <div v-if="localBlock.imageUrl || localBlock.imageData" class="image-preview">
+          <img :src="localBlock.imageData || localBlock.imageUrl" alt="Preview" />
+          <button @click="clearImage" class="btn-clear">Remover Imagem</button>
+        </div>
       </div>
     </div>
   </div>
@@ -306,5 +384,93 @@ function removeCondition(condId: string) {
 
 .btn-add:hover {
   background: #2563eb;
+}
+
+.image-source-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 8px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  background: #e5e7eb;
+}
+
+.tab-button.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.image-url-input,
+.image-upload-input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.upload-button {
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  transition: background 0.2s;
+  width: 100%;
+}
+
+.upload-button:hover {
+  background: #2563eb;
+}
+
+.image-preview {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.image-preview img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.btn-clear {
+  padding: 6px 12px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-clear:hover {
+  background: #dc2626;
 }
 </style>

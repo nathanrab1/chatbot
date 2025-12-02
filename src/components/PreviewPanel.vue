@@ -178,6 +178,31 @@ function processBlock(block: Block) {
       }, 300);
       break;
 
+    case 'image':
+      // Exibe uma imagem e continua para o próximo bloco
+      const imageUrl = block.imageData || block.imageUrl;
+      if (imageUrl) {
+        addImageMessage(imageUrl);
+      } else {
+        addErrorMessage('(Erro: imagem não definida)');
+      }
+      setTimeout(() => {
+        if (block.nextBlockId) {
+          const nextBlock = props.blocks.find(b => b.id === block.nextBlockId);
+          if (nextBlock) {
+            currentBlockId.value = block.nextBlockId;
+            processBlock(nextBlock);
+          } else {
+            console.error(`Bloco de destino não encontrado: ${block.nextBlockId}`);
+            addErrorMessage('(Erro de fluxo: bloco de destino não encontrado)');
+            endChat();
+          }
+        } else {
+          endChat();
+        }
+      }, 500);
+      break;
+
     case 'end':
       // Bloco final da conversa
       if (block.content) {
@@ -215,6 +240,16 @@ function addErrorMessage(content: string) {
     id: `msg_${Date.now()}`,
     type: 'bot',
     content: `⚠️ ${content}`
+  });
+  scrollToBottom();
+}
+
+// Adiciona uma imagem ao chat
+function addImageMessage(imageUrl: string) {
+  messages.value.push({
+    id: `msg_${Date.now()}`,
+    type: 'image',
+    content: imageUrl
   });
   scrollToBottom();
 }
@@ -345,9 +380,17 @@ function syncVariablesToParent() {
         <div
           v-for="message in messages"
           :key="message.id"
-          :class="['message', message.type === 'bot' ? 'message-bot' : 'message-user']"
+          :class="['message', message.type === 'image' ? 'message-bot' : (message.type === 'bot' ? 'message-bot' : 'message-user')]"
         >
-          <div class="message-bubble">
+          <div v-if="message.type === 'image'" class="message-image">
+            <img
+              :src="message.content"
+              alt="Imagem do chatbot"
+              @error="(e) => { (e.target as HTMLImageElement).style.display = 'none'; }"
+              @load="(e) => { (e.target as HTMLImageElement).style.display = 'block'; }"
+            />
+          </div>
+          <div v-else class="message-bubble">
             {{ message.content }}
           </div>
         </div>
@@ -640,5 +683,23 @@ function syncVariablesToParent() {
 .btn-restart:hover {
   background: #059669;
   transform: translateY(-1px);
+}
+
+/* Imagens no chat */
+.message-image {
+  max-width: 75%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.message-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
 }
 </style>

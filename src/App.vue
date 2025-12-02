@@ -79,6 +79,8 @@ function getDefaultContent(type: BlockType): string {
       return 'Verificando condição...';
     case 'setVariable':
       return 'Definindo variável...';
+    case 'image':
+      return 'Imagem';
     case 'end':
       return 'Obrigado por usar o chatbot!';
     default:
@@ -274,6 +276,10 @@ function closeContextMenu() {
               <span class="block-icon" style="background: #06b6d4;">📝</span>
               Definir Variável
             </button>
+            <button @click="createBlock('image')" class="block-menu-item">
+              <span class="block-icon" style="background: #ec4899;">🖼️</span>
+              Imagem
+            </button>
             <button @click="createBlock('end')" class="block-menu-item">
               <span class="block-icon" style="background: #ef4444;">✅</span>
               Fim da Conversa
@@ -332,6 +338,10 @@ function closeContextMenu() {
           <button @click="createBlock('setVariable')" class="block-menu-item">
             <span class="block-icon" style="background: #06b6d4;">📝</span>
             Definir Variável
+          </button>
+          <button @click="createBlock('image')" class="block-menu-item">
+            <span class="block-icon" style="background: #ec4899;">🖼️</span>
+            Imagem
           </button>
           <button @click="createBlock('end')" class="block-menu-item">
             <span class="block-icon" style="background: #ef4444;">✅</span>
