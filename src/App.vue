@@ -103,7 +103,6 @@ function removeVariable(name: string) {
 }
 
 // Exporta o fluxo como JSON para download
-// Este JSON pode ser carregado em outro componente no futuro
 function exportJSON() {
   const data = {
     blocks: blocks.value,
@@ -119,6 +118,47 @@ function exportJSON() {
   a.download = 'chatbot.json';
   a.click();
   URL.revokeObjectURL(url);
+}
+
+// Importa um JSON e carrega o projeto
+function importJSON() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json';
+
+  input.onchange = (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target?.result as string);
+
+        if (data.blocks && Array.isArray(data.blocks)) {
+          blocks.value = data.blocks;
+        }
+
+        if (data.connections && Array.isArray(data.connections)) {
+          connections.value = data.connections;
+        }
+
+        if (data.variables && typeof data.variables === 'object') {
+          variables.value = data.variables;
+        }
+
+        selectedBlockId.value = null;
+        alert('Projeto carregado com sucesso!');
+      } catch (error) {
+        alert('Erro ao carregar o arquivo JSON. Verifique se o formato está correto.');
+        console.error('Erro ao importar JSON:', error);
+      }
+    };
+
+    reader.readAsText(file);
+  };
+
+  input.click();
 }
 
 // Visualiza o JSON em uma nova janela
@@ -224,6 +264,7 @@ function togglePreviewFullscreen() {
           </div>
         </div>
 
+        <button @click="importJSON" class="btn-secondary">📂 Importar</button>
         <button @click="viewJSON" class="btn-secondary">👁️ Ver JSON</button>
         <button @click="exportJSON" class="btn-secondary">💾 Exportar</button>
       </div>
