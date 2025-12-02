@@ -420,7 +420,9 @@ function getConnectionPathById(conn: Connection): string {
 // Seleciona uma conexão
 function handleConnectionClick(connectionId: string, event: MouseEvent) {
   event.stopPropagation();
+  event.preventDefault();
   selectedConnectionId.value = connectionId;
+  console.log('Connection clicked:', connectionId);
 }
 
 // Deleta a conexão selecionada
@@ -568,17 +570,27 @@ onMounted(() => {
       </defs>
 
       <!-- Conexões existentes -->
-      <path
-        v-for="conn in connections"
-        :key="`${conn.id}-${renderKey}`"
-        :d="getConnectionPathById(conn)"
-        :stroke="selectedConnectionId === conn.id ? '#3b82f6' : '#64748b'"
-        :stroke-width="selectedConnectionId === conn.id ? 3.5 : 2.5"
-        fill="none"
-        marker-end="url(#arrowhead)"
-        class="connection-path"
-        @click="handleConnectionClick(conn.id, $event)"
-      />
+      <g v-for="conn in connections" :key="`${conn.id}-${renderKey}`">
+        <!-- Path invisível mais grosso para facilitar o clique -->
+        <path
+          :d="getConnectionPathById(conn)"
+          stroke="transparent"
+          stroke-width="20"
+          fill="none"
+          class="connection-hitbox"
+          @click="handleConnectionClick(conn.id, $event)"
+        />
+        <!-- Path visível -->
+        <path
+          :d="getConnectionPathById(conn)"
+          :stroke="selectedConnectionId === conn.id ? '#3b82f6' : '#64748b'"
+          :stroke-width="selectedConnectionId === conn.id ? 3.5 : 2.5"
+          fill="none"
+          marker-end="url(#arrowhead)"
+          class="connection-path"
+          @click="handleConnectionClick(conn.id, $event)"
+        />
+      </g>
 
       <!-- Conexão temporária durante o arraste -->
       <path
@@ -614,6 +626,11 @@ onMounted(() => {
     <div v-if="connectingFrom" class="connection-hint">
       <strong>🔗 Conectando...</strong><br>
       Clique no handle vermelho (entrada) do bloco de destino
+    </div>
+
+    <!-- Dica quando uma conexão está selecionada -->
+    <div v-if="selectedConnectionId" class="delete-hint">
+      Pressione <kbd>Delete</kbd> ou <kbd>Backspace</kbd> para remover esta conexão
     </div>
   </div>
 </template>
@@ -654,9 +671,9 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none;
   overflow: visible;
-  z-index: 1;
+  z-index: 150;
+  pointer-events: none;
 }
 
 .blocks-container {
@@ -666,18 +683,36 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   z-index: 100;
+  pointer-events: none;
 }
 
-.connection-path {
-  transition: stroke 0.2s, stroke-width 0.2s;
+.blocks-container > * {
+  pointer-events: auto;
+}
+
+.connection-hitbox {
   cursor: pointer;
   pointer-events: stroke;
   stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.connection-path:hover {
+.connections-svg g {
+  pointer-events: all;
+}
+
+.connection-path {
+  transition: stroke 0.2s, stroke-width 0.2s, filter 0.2s;
+  cursor: pointer;
+  pointer-events: none;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 0 transparent);
+}
+
+g:hover .connection-path {
   stroke: #3b82f6 !important;
-  stroke-width: 3.5 !important;
+  stroke-width: 4 !important;
+  filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.5));
 }
 
 .connection-temp {
@@ -714,6 +749,43 @@ onMounted(() => {
   }
   50% {
     box-shadow: 0 4px 30px rgba(16, 185, 129, 0.6);
+  }
+}
+
+.delete-hint {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ef4444;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+  z-index: 1000;
+  text-align: center;
+  animation: slideUp 0.3s ease-out;
+}
+
+.delete-hint kbd {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
 }
 </style>
