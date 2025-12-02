@@ -786,20 +786,22 @@ onMounted(() => {
           />
         </template>
 
-        <!-- Waypoints editáveis -->
-        <circle
-          v-for="(waypoint, index) in conn.waypoints"
-          :key="`waypoint-${index}`"
-          :cx="waypoint.x"
-          :cy="waypoint.y"
-          :r="selectedConnectionId === conn.id ? 8 : 5"
-          :fill="selectedConnectionId === conn.id ? '#3b82f6' : '#94a3b8'"
-          :stroke="selectedConnectionId === conn.id ? '#ffffff' : 'transparent'"
-          :stroke-width="2"
-          class="connection-waypoint"
-          @mousedown="handleWaypointMouseDown(conn.id, index, $event)"
-          @click.stop
-        />
+        <!-- Waypoints editáveis (apenas quando selecionado) -->
+        <template v-if="selectedConnectionId === conn.id">
+          <circle
+            v-for="(waypoint, index) in conn.waypoints"
+            :key="`waypoint-${index}`"
+            :cx="waypoint.x"
+            :cy="waypoint.y"
+            r="8"
+            fill="#3b82f6"
+            stroke="#ffffff"
+            stroke-width="2"
+            class="connection-waypoint"
+            @mousedown="handleWaypointMouseDown(conn.id, index, $event)"
+            @click.stop
+          />
+        </template>
       </g>
 
       <!-- Conexão temporária durante o arraste -->
