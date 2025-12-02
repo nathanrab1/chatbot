@@ -70,12 +70,34 @@ function getHandlePosition(handleElement: HTMLElement): { x: number; y: number }
   };
 }
 
-// Gera o path SVG para uma conexão (horizontal)
+// Gera o path SVG para uma conexão estilo Landbot (com curvas arredondadas)
 function getConnectionPath(fromX: number, fromY: number, toX: number, toY: number): string {
   const dx = toX - fromX;
-  const controlOffset = Math.abs(dx) * 0.4 + 50;
+  const dy = toY - fromY;
+  const radius = 20;
 
-  return `M ${fromX} ${fromY} C ${fromX + controlOffset} ${fromY}, ${toX - controlOffset} ${toY}, ${toX} ${toY}`;
+  // Distância horizontal mínima antes de fazer a curva vertical
+  const horizontalSegment = Math.max(Math.abs(dx) * 0.5, 50);
+
+  // Se os blocos estão aproximadamente na mesma altura (aumentei a tolerância)
+  if (Math.abs(dy) < 50) {
+    return `M ${fromX} ${fromY} L ${toX} ${toY}`;
+  }
+
+  // Path simplificado: horizontal -> curva -> vertical -> curva -> horizontal
+  const midX = fromX + horizontalSegment;
+
+  // Direção vertical (para cima ou para baixo)
+  const verticalDirection = dy > 0 ? 1 : -1;
+
+  return `
+    M ${fromX} ${fromY}
+    L ${midX - radius} ${fromY}
+    Q ${midX} ${fromY}, ${midX} ${fromY + radius * verticalDirection}
+    L ${midX} ${toY - radius * verticalDirection}
+    Q ${midX} ${toY}, ${midX + radius} ${toY}
+    L ${toX} ${toY}
+  `.replace(/\s+/g, ' ').trim();
 }
 
 // Atualiza o path da conexão temporária durante o arraste

@@ -314,8 +314,8 @@ function handleDelete(event: MouseEvent) {
 /* Handles de conexão */
 .handle {
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border: 3px solid white;
   border-radius: 50%;
   cursor: crosshair;
@@ -333,7 +333,7 @@ function handleDelete(event: MouseEvent) {
 .input-handle {
   background: #ef4444;
   top: 50%;
-  left: -7px;
+  left: -8px;
   transform: translateY(-50%);
 }
 
@@ -355,7 +355,7 @@ function handleDelete(event: MouseEvent) {
 /* Handle de saída principal (na direita do bloco) */
 .main-output {
   top: 50%;
-  right: -7px;
+  right: -8px;
   transform: translateY(-50%);
 }
 
