@@ -30,6 +30,7 @@ const blockTitle = computed(() => {
     case "choiceQuestion": return "Múltipla Escolha";
     case "condition": return "Condicional";
     case "setVariable": return "Definir Variável";
+    case "math": return "Operação Matemática";
     case "image": return "Imagem";
     case "end": return "Fim da Conversa";
     default: return "Bloco";
@@ -43,6 +44,7 @@ const blockIcon = computed(() => {
     case "choiceQuestion": return "📊";
     case "condition": return "⚙️";
     case "setVariable": return "📝";
+    case "math": return "🔢";
     case "image": return "🖼️";
     case "end": return "✅";
     default: return "📦";
@@ -56,6 +58,7 @@ const blockColor = computed(() => {
     case "choiceQuestion": return "#f59e0b";
     case "condition": return "#8b5cf6";
     case "setVariable": return "#06b6d4";
+    case "math": return "#f97316";
     case "image": return "#ec4899";
     case "end": return "#ef4444";
     default: return "#6b7280";
@@ -134,13 +137,20 @@ function handleDelete(event: MouseEvent) {
     />
 
     <div class="block-content">
-      <p v-if="block.type !== 'setVariable' && block.type !== 'image'">{{ block.content || 'Sem conteúdo' }}</p>
+      <p v-if="block.type !== 'setVariable' && block.type !== 'image' && block.type !== 'math'">{{ block.content || 'Sem conteúdo' }}</p>
 
       <!-- Visualização para setVariable -->
       <div v-if="block.type === 'setVariable'" class="variable-assignment">
         <span class="var-name">{{ block.variableName || '?' }}</span>
         <span class="var-equals">=</span>
         <span class="var-value">{{ block.variableValue || '?' }}</span>
+      </div>
+
+      <!-- Visualização para math -->
+      <div v-if="block.type === 'math'" class="math-operation">
+        <span class="var-name">{{ block.variableName || '?' }}</span>
+        <span class="math-op">{{ block.mathOperation || '+' }}=</span>
+        <span class="var-value">{{ block.mathValue || '?' }}</span>
       </div>
 
       <!-- Visualização para image -->
@@ -180,7 +190,7 @@ function handleDelete(event: MouseEvent) {
       </div>
     </div>
 
-    <!-- Handle de saída principal (verde na base) - não renderiza para 'end' -->
+    <!-- Handle de saída principal (verde na direita) - não renderiza para 'end' -->
     <div
       v-if="block.type !== 'end' && block.type !== 'choiceQuestion' && block.type !== 'condition'"
       :data-handle-id="`${block.id}-output`"
@@ -318,6 +328,22 @@ function handleDelete(event: MouseEvent) {
 .var-value {
   color: #059669;
   font-weight: 600;
+}
+
+.math-operation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: #fff7ed;
+  border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+}
+
+.math-op {
+  color: #ea580c;
+  font-weight: 700;
 }
 
 /* Handles de conexão */

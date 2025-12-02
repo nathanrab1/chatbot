@@ -110,7 +110,7 @@ function openFileDialog() {
         <input type="text" :value="localBlock.type" disabled />
       </div>
 
-      <div v-if="localBlock.type !== 'end' && localBlock.type !== 'setVariable'" class="property-group">
+      <div v-if="localBlock.type !== 'end' && localBlock.type !== 'setVariable' && localBlock.type !== 'math' && localBlock.type !== 'image'" class="property-group">
         <label>{{ localBlock.type === 'message' ? 'Mensagem' : 'Pergunta' }}</label>
         <textarea
           v-model="localBlock.content"
@@ -149,6 +149,37 @@ function openFileDialog() {
           placeholder="Digite o valor..."
         />
         <small>Use &#123;&#123;variavel&#125;&#125; para usar valores de outras variáveis</small>
+      </div>
+
+      <div v-if="localBlock.type === 'math'" class="property-group">
+        <label>Variável</label>
+        <select v-model="localBlock.variableName" @change="updateBlock">
+          <option :value="undefined">Selecione uma variável</option>
+          <option v-for="name in Object.keys(variables)" :key="name" :value="name">
+            {{ name }}
+          </option>
+        </select>
+        <small>Variável que receberá o resultado da operação</small>
+      </div>
+
+      <div v-if="localBlock.type === 'math'" class="property-group">
+        <label>Operação</label>
+        <select v-model="localBlock.mathOperation" @change="updateBlock">
+          <option value="+">+ (Somar)</option>
+          <option value="-">- (Subtrair)</option>
+          <option value="*">* (Multiplicar)</option>
+          <option value="/">/ (Dividir)</option>
+        </select>
+      </div>
+
+      <div v-if="localBlock.type === 'math'" class="property-group">
+        <label>Valor</label>
+        <input
+          v-model="localBlock.mathValue"
+          @input="updateBlock"
+          placeholder="Digite um número ou {{variavel}}"
+        />
+        <small>Use um número fixo ou &#123;&#123;variavel&#125;&#125; para usar valor de outra variável</small>
       </div>
 
       <div v-if="localBlock.type === 'openQuestion'" class="property-group">

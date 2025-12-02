@@ -178,6 +178,53 @@ function processBlock(block: Block) {
       }, 300);
       break;
 
+    case 'math':
+      // Realiza operação matemática com variável
+      if (block.variableName && sessionVariables.value[block.variableName]) {
+        const variable = sessionVariables.value[block.variableName];
+        const currentValue = Number(variable.value) || 0;
+
+        // Interpola o valor (pode ser um número fixo ou {{variavel}})
+        const interpolatedValue = interpolateText(block.mathValue || '0', sessionVariables.value);
+        const operandValue = Number(interpolatedValue) || 0;
+
+        let result = currentValue;
+        switch (block.mathOperation) {
+          case '+':
+            result = currentValue + operandValue;
+            break;
+          case '-':
+            result = currentValue - operandValue;
+            break;
+          case '*':
+            result = currentValue * operandValue;
+            break;
+          case '/':
+            result = operandValue !== 0 ? currentValue / operandValue : currentValue;
+            break;
+        }
+
+        sessionVariables.value[block.variableName].value = result;
+        syncVariablesToParent();
+      }
+
+      setTimeout(() => {
+        if (block.nextBlockId) {
+          const nextBlock = props.blocks.find(b => b.id === block.nextBlockId);
+          if (nextBlock) {
+            currentBlockId.value = block.nextBlockId;
+            processBlock(nextBlock);
+          } else {
+            console.error(`Bloco de destino não encontrado: ${block.nextBlockId}`);
+            addErrorMessage('(Erro de fluxo: bloco de destino não encontrado)');
+            endChat();
+          }
+        } else {
+          endChat();
+        }
+      }, 300);
+      break;
+
     case 'image':
       // Exibe uma imagem e continua para o próximo bloco
       const imageUrl = block.imageData || block.imageUrl;

@@ -38,6 +38,8 @@ const showNewBlockMenu = ref(false);
 const showContextMenu = ref(false);
 const contextMenuPosition = ref<{ x: number; y: number; screenX: number; screenY: number } | null>(null);
 const isPreviewFullscreen = ref(false);
+const sidePanelWidth = ref(350);
+const isResizing = ref(false);
 
 // Retorna o bloco atualmente selecionado
 const selectedBlock = computed(() => {
@@ -79,6 +81,8 @@ function getDefaultContent(type: BlockType): string {
       return 'Verificando condição...';
     case 'setVariable':
       return 'Definindo variável...';
+    case 'math':
+      return 'Operação matemática';
     case 'image':
       return 'Imagem';
     case 'end':
@@ -227,6 +231,27 @@ function closeContextMenu() {
   showContextMenu.value = false;
   contextMenuPosition.value = null;
 }
+
+// Inicia o redimensionamento do painel lateral
+function startResize(event: MouseEvent) {
+  isResizing.value = true;
+  event.preventDefault();
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isResizing.value) return;
+    const newWidth = window.innerWidth - e.clientX;
+    sidePanelWidth.value = Math.max(300, Math.min(800, newWidth));
+  };
+
+  const handleMouseUp = () => {
+    isResizing.value = false;
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+  };
+
+  document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseup', handleMouseUp);
+}
 </script>
 
 <template>
@@ -275,6 +300,10 @@ function closeContextMenu() {
             <button @click="createBlock('setVariable')" class="block-menu-item">
               <span class="block-icon" style="background: #06b6d4;">📝</span>
               Definir Variável
+            </button>
+            <button @click="createBlock('math')" class="block-menu-item">
+              <span class="block-icon" style="background: #f97316;">🔢</span>
+              Operação Matemática
             </button>
             <button @click="createBlock('image')" class="block-menu-item">
               <span class="block-icon" style="background: #ec4899;">🖼️</span>
@@ -339,6 +368,10 @@ function closeContextMenu() {
             <span class="block-icon" style="background: #06b6d4;">📝</span>
             Definir Variável
           </button>
+          <button @click="createBlock('math')" class="block-menu-item">
+            <span class="block-icon" style="background: #f97316;">🔢</span>
+            Operação Matemática
+          </button>
           <button @click="createBlock('image')" class="block-menu-item">
             <span class="block-icon" style="background: #ec4899;">🖼️</span>
             Imagem
@@ -351,7 +384,10 @@ function closeContextMenu() {
       </div>
 
       <!-- Painel lateral com propriedades, variáveis e preview -->
-      <aside class="side-panel" :class="{ 'fullscreen': isPreviewFullscreen }">
+      <aside class="side-panel" :class="{ 'fullscreen': isPreviewFullscreen }" :style="{ width: isPreviewFullscreen ? '100%' : `${sidePanelWidth}px` }">
+        <!-- Resize handle -->
+        <div v-if="!isPreviewFullscreen" class="resize-handle" @mousedown="startResize"></div>
+
         <div class="tabs">
           <button
             :class="['tab', { active: activeTab === 'properties' }]"
@@ -563,17 +599,39 @@ body {
 
 /* Painel lateral */
 .side-panel {
-  width: 350px;
+  min-width: 300px;
+  max-width: 800px;
   background: white;
   border-left: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
-  transition: all 0.3s ease;
+  position: relative;
+  flex-shrink: 0;
 }
 
 .side-panel.fullscreen {
   width: 100%;
   border-left: none;
+}
+
+/* Handle de redimensionamento */
+.resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: ew-resize;
+  z-index: 1000;
+  transition: background 0.2s;
+}
+
+.resize-handle:hover {
+  background: #3b82f6;
+}
+
+.resize-handle:active {
+  background: #2563eb;
 }
 
 .tabs {
