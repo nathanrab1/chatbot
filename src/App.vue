@@ -226,7 +226,6 @@ function togglePreviewFullscreen() {
           max="150"
           step="5"
         />
-        <span>{{ zoom }}%</span>
       </div>
 
       <div class="toolbar-right">
@@ -282,6 +281,7 @@ function togglePreviewFullscreen() {
           @update:selected-block-id="selectedBlockId = $event"
           @update:blocks="blocks = $event"
           @update:connections="connections = $event"
+          @update:zoom="zoom = $event"
         />
       </div>
 

@@ -25,6 +25,7 @@ const emit = defineEmits<{
   'update:selectedBlockId': [id: string | null];
   'update:blocks': [blocks: Block[]];
   'update:connections': [connections: Connection[]];
+  'update:zoom': [zoom: number];
 }>();
 
 const canvasRef = ref<HTMLDivElement | null>(null);
@@ -70,34 +71,44 @@ function getHandlePosition(handleElement: HTMLElement): { x: number; y: number }
   };
 }
 
-// Gera o path SVG para uma conexão estilo Landbot (com curvas arredondadas)
+// Gera o path SVG para uma conexão estilo Landbot (com curvas arredondadas de 90 graus)
 function getConnectionPath(fromX: number, fromY: number, toX: number, toY: number): string {
-  const dx = toX - fromX;
   const dy = toY - fromY;
-  const radius = 20;
+  const radius = 15;
+  const horizontalOffset = 50; // Distância fixa para direita antes de virar
 
-  // Distância horizontal mínima antes de fazer a curva vertical
-  const horizontalSegment = Math.max(Math.abs(dx) * 0.5, 50);
-
-  // Se os blocos estão aproximadamente na mesma altura (aumentei a tolerância)
-  if (Math.abs(dy) < 50) {
+  // Se os blocos estão aproximadamente na mesma altura
+  if (Math.abs(dy) < 20) {
     return `M ${fromX} ${fromY} L ${toX} ${toY}`;
   }
 
-  // Path simplificado: horizontal -> curva -> vertical -> curva -> horizontal
-  const midX = fromX + horizontalSegment;
-
   // Direção vertical (para cima ou para baixo)
-  const verticalDirection = dy > 0 ? 1 : -1;
+  const goingDown = dy > 0;
 
-  return `
-    M ${fromX} ${fromY}
-    L ${midX - radius} ${fromY}
-    Q ${midX} ${fromY}, ${midX} ${fromY + radius * verticalDirection}
-    L ${midX} ${toY - radius * verticalDirection}
-    Q ${midX} ${toY}, ${midX + radius} ${toY}
-    L ${toX} ${toY}
-  `.replace(/\s+/g, ' ').trim();
+  // Primeira curva: sai para direita e vira para cima/baixo
+  const firstCornerX = fromX + horizontalOffset;
+
+  if (goingDown) {
+    // Indo para baixo: direita -> baixo -> esquerda/direita
+    return `
+      M ${fromX} ${fromY}
+      L ${firstCornerX - radius} ${fromY}
+      Q ${firstCornerX} ${fromY}, ${firstCornerX} ${fromY + radius}
+      L ${firstCornerX} ${toY - radius}
+      Q ${firstCornerX} ${toY}, ${firstCornerX + radius} ${toY}
+      L ${toX} ${toY}
+    `.replace(/\s+/g, ' ').trim();
+  } else {
+    // Indo para cima: direita -> cima -> esquerda/direita
+    return `
+      M ${fromX} ${fromY}
+      L ${firstCornerX - radius} ${fromY}
+      Q ${firstCornerX} ${fromY}, ${firstCornerX} ${fromY - radius}
+      L ${firstCornerX} ${toY + radius}
+      Q ${firstCornerX} ${toY}, ${firstCornerX + radius} ${toY}
+      L ${toX} ${toY}
+    `.replace(/\s+/g, ' ').trim();
+  }
 }
 
 // Atualiza o path da conexão temporária durante o arraste
@@ -414,9 +425,29 @@ function forceUpdate() {
 
 watch(() => [props.blocks, props.connections, props.zoom, panOffset.value], forceUpdate, { deep: true });
 
+// Handler para zoom com Ctrl + Wheel
+function handleWheel(event: WheelEvent) {
+  if (event.ctrlKey) {
+    event.preventDefault();
+
+    // Calcula o novo zoom (zoom está em porcentagem: 25-150)
+    const delta = -event.deltaY * 0.1;
+    const newZoom = Math.max(25, Math.min(150, props.zoom + delta));
+
+    // Emite o evento para atualizar o zoom no componente pai
+    emit('update:zoom', newZoom);
+  }
+}
+
 onMounted(() => {
   forceUpdate();
   window.addEventListener('keydown', handleKeyDown);
+
+  // Adiciona listener para zoom com Ctrl + Wheel
+  const canvas = canvasRef.value;
+  if (canvas) {
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+  }
 });
 </script>
 
